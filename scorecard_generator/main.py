@@ -1,7 +1,7 @@
 from .team_utils import choose_team_xi
 from .game_logic import play_innings
 from .input_handlers import select_format
-from .scorecard_export import export_scorecard_excel
+from .scorecard_export import export_all
 
 ### just to not forget this info
 # cd /workspaces/python-portfolio/python-courses/cisco-python-essentials-2/scorecard-generator
@@ -86,8 +86,8 @@ def main():
         
         print(f"\nMatch Result: {match_result}")
 
-        # Export to Excel
-        export_scorecard_excel("scorecard_generator/exports/scorecard.xlsx", team1, team2, innings1, innings2, match_result)
+        # Export to CSV files
+        export_all(team1, team2, innings1, innings2, match_result)
         
         # Post-match menu
         print("\nGame Finished!")

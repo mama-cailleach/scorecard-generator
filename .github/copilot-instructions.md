@@ -8,13 +8,13 @@
 - `game_logic.py` — Ball-by-ball match simulation and event processing (280+ lines, complex)
 - `input_handlers.py` — Robust user input validation (`safe_int`, `safe_choice`, `get_display_name`)
 - `scorecard.py` — Scorecard formatting and display
-- `scorecard_export.py` — Excel export (openpyxl) for match records
+- `scorecard_export.py` — CSV export in Cricsheet format (scorecard, info, ball-by-ball)
 - `main.py` — Entry point: toss → XI selection → innings loop → export
 
 **Current scope limitations:**
-- `MAX_OVERS = 2` (hardcoded for testing; target: 20 overs for T20)
-- `MAX_BOWLER_OVERS = 1` (hardcoded; target: 4 overs max)
-- No persistence of match records beyond Excel export
+- `MAX_OVERS = 2` (hardcoded for testing; superseded by format_config selection)
+- `MAX_BOWLER_OVERS = 1` (hardcoded; superseded by format_config selection)
+- Export uses "N/A" placeholders for unimplemented metadata (match_id, season, venue, etc.)
 
 ## Project Organization
 
@@ -28,6 +28,7 @@
 **Documentation files in `docs/`:**
 - `FORMAT_IMPLEMENTATION.md` — Cricket format selection system (T20, ODI, First Class, Custom)
 - `OVERS_CALCULATION_FIX.md` — Bug fix for scorecard overs display accuracy
+- `EXPORT_SYSTEM_OVERHAUL.md` — CSV export system with Cricsheet format compatibility
 - `FIX_SUMMARY.md` — Summary of fixes and improvements
 
 **Test files in `test/`:**
@@ -36,6 +37,7 @@
 - `test_imports.py` — Module import verification
 - `test_overs_calculation.py` — Overs calculation accuracy tests
 - `test_bug_scenario.py` — Reproductions of specific bugs for regression testing
+- `test_export_format.py` — Export format validation and innings ordering bug fix verification
 
 ## Critical Data Flow
 
@@ -88,7 +90,7 @@ Each innings tracked via `Innings` with:
 2. **Extend models**: Update `Player`, `Team`, or `Innings` if new data needed
 3. **Add logic**: Place game-changing logic in `game_logic.py`, I/O in `input_handlers.py`
 4. **Update scorecard**: Modify `scorecard.py` for display; test with both batting/bowling views
-5. **Excel export**: Update `scorecard_export.py` if new stats needed (import openpyxl)
+5. **CSV export**: Update `scorecard_export.py` if new stats needed (3 formats: scorecard, info, ball-by-ball)
 6. **Test file**: Add test_*.py to `test/` folder for verification
 7. **Documentation**: Add/update markdown files in `docs/` folder with implementation details
 
@@ -115,8 +117,7 @@ python match_simulator.py
 ```
 
 ## External Dependencies
-- `openpyxl` — Excel export (optional; scorecard still works without it, but export fails)
-- No other third-party deps; uses stdlib only (csv, collections, os, sys)
+- No third-party deps; uses stdlib only (csv, collections, os, sys, re)
 
 ## Code Style Notes
 - No type hints (legacy codebase); consider `from typing import` for new code

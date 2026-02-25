@@ -1,0 +1,1 @@
+# This file makes 'scorecard_generator' a Python package.

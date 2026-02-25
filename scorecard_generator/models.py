@@ -4,6 +4,13 @@ BALLS_PER_OVER = 6
 MAX_OVERS = 2  # Update later for 20
 MAX_BOWLER_OVERS = 1 # update Later for 4 overs in T20
 
+# Pre-defined cricket formats
+CRICKET_FORMATS = {
+    'T20': {'name': 'T20', 'max_overs': 20, 'max_bowler_overs': 4, 'balls_per_over': 6},
+    'ODI': {'name': 'One Day', 'max_overs': 50, 'max_bowler_overs': 10, 'balls_per_over': 6},
+    'TEST': {'name': 'First Class', 'max_overs': None, 'max_bowler_overs': None, 'balls_per_over': 6},
+}
+
 class Player:
     def __init__(self, number, name):
         self.number = number
@@ -83,8 +90,35 @@ class Innings:
             total_runs += player.batting['runs']
         
         wickets = len(self.fall_of_wickets)
-        # Only count balls for legal deliveries
-        balls = sum(1 for be in self.balls if be.event in ['normal', 'bye', 'leg bye', 'wicket', 'run out''bye_run_out', 'leg_bye_run_out'])
-        overs = balls // BALLS_PER_OVER + (balls % BALLS_PER_OVER) / 10
-        rr = total_runs / (balls / 6) if balls else 0
+        
+        # Calculate overs using bowler_overs data (more reliable)
+        # bowler_overs is dict like {bowler_num: [over_0, over_1, ...]}
+        if self.bowler_overs:
+            # Get all distinct over numbers that were bowled
+            all_overs_bowled = set()
+            for overs_list in self.bowler_overs.values():
+                all_overs_bowled.update(overs_list)
+            
+            if all_overs_bowled:
+                # Maximum over number tells us how many complete overs exist
+                max_over = max(all_overs_bowled)
+                
+                # Count balls in the last (potentially incomplete) over
+                balls_in_last_over = sum(
+                    1 for be in self.balls 
+                    if be.over == max_over and be.event not in ['wide', 'no ball']
+                )
+                
+                # Calculate overs: complete overs + fractional part from last over
+                complete_overs, remainder = divmod(balls_in_last_over, BALLS_PER_OVER)
+                overs = max_over + complete_overs + remainder / 10
+            else:
+                overs = 0
+        else:
+            # Fallback: count from balls if no bowler_overs available
+            # Count all deliveries except wides and no-balls (which don't count as legal)
+            balls = sum(1 for be in self.balls if be.event not in ['wide', 'no ball'])
+            overs = balls // BALLS_PER_OVER + (balls % BALLS_PER_OVER) / 10
+        
+        rr = total_runs / (overs * BALLS_PER_OVER / BALLS_PER_OVER) if overs > 0 else 0
         return total_runs, wickets, overs, rr

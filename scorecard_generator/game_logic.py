@@ -263,7 +263,11 @@ def process_ball_event(
 
     return wickets, over_runs, legal_balls, ball_number, current_batters, batters_yet, over_ended_early
 
-def play_innings(batting_team, bowling_team, max_overs, max_bowler_overs, target=None):
+def play_innings(batting_team, bowling_team, format_config, target=None):
+    max_overs = format_config['max_overs']
+    max_bowler_overs = format_config['max_bowler_overs']
+    balls_per_over = format_config['balls_per_over']
+    
     innings = Innings(batting_team, bowling_team)
     print(f"Players available to open the batting:")
     for idx, num in enumerate(batting_team.order, 1):
@@ -276,8 +280,9 @@ def play_innings(batting_team, bowling_team, max_overs, max_bowler_overs, target
     wickets = 0
     over = 0
     prev_bowler = None
-    while over < max_overs and wickets < 10:
-        bowler_num = select_bowler(bowling_team, over, prev_bowler, bowler_overs)
+    # Condition handles unlimited overs (max_overs is None) or limited overs
+    while (max_overs is None or over < max_overs) and wickets < 10:
+        bowler_num = select_bowler(bowling_team, over, prev_bowler, bowler_overs, max_bowler_overs)
         bowler = bowling_team.players[bowler_num]
         balls_this_over = 0
         over_runs = 0
@@ -286,7 +291,7 @@ def play_innings(batting_team, bowling_team, max_overs, max_bowler_overs, target
         ball_num = 1
         over_ended_early = False
         bowler_overs.setdefault(bowler_num, [])
-        while legal_balls < 6:
+        while legal_balls < balls_per_over:
             if wickets == 10 or current_batters[0] is None or current_batters[1] is None:
                 over_ended_early = True
                 break

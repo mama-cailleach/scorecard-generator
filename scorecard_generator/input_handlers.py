@@ -56,14 +56,14 @@ def select_openers(team):
         except Exception:
             print("you can't do that try again.")
 
-def select_bowler(bowling_team, over, prev_bowler, bowler_overs):
-    from .models import MAX_BOWLER_OVERS
+def select_bowler(bowling_team, over, prev_bowler, bowler_overs, max_bowler_overs):
     print(f"\nSelect bowler for over {over+1} from {bowling_team.name}:")
     eligible = []
     for idx, num in enumerate(bowling_team.order, 1):
         overs_bowled = len(bowler_overs.get(num, []))
         last_bowled = bowler_overs.get(num, [-2])[-1] if bowler_overs.get(num) else -2
-        can_bowl = overs_bowled < MAX_BOWLER_OVERS and (last_bowled < over-1 or last_bowled == -2)
+        # Check eligibility: if max_bowler_overs is None, unlimited; otherwise check against limit
+        can_bowl = (max_bowler_overs is None or overs_bowled < max_bowler_overs) and (last_bowled < over-1 or last_bowled == -2)
         print(f"{idx}: {num} {get_display_name(bowling_team, num)} - {overs_bowled} overs bowled", "(resting)" if not can_bowl else "")
         if can_bowl:
             eligible.append(idx)
@@ -77,6 +77,61 @@ def select_bowler(bowling_team, over, prev_bowler, bowler_overs):
             return bowler_num
         except Exception:
             print("you can't do that try again.")
+
+def select_format():
+    from .models import CRICKET_FORMATS
+    print("\nChoose Match Format:")
+    print("1. T20")
+    print("2. One Day (ODI)")
+    print("3. First Class")
+    print("4. Custom Rules")
+    
+    choice = safe_choice("Enter format number: ", ["1", "2", "3", "4"])
+    
+    if choice == "1":
+        return CRICKET_FORMATS['T20'].copy()
+    elif choice == "2":
+        return CRICKET_FORMATS['ODI'].copy()
+    elif choice == "3":
+        return CRICKET_FORMATS['TEST'].copy()
+    elif choice == "4":
+        # Custom format configuration
+        print("\n--- Custom Format Configuration ---")
+        print("Is this a limited overs format? (y/n)")
+        is_limited = input("> ").strip().lower() == 'y'
+        
+        if is_limited:
+            max_overs = safe_int("Enter maximum overs per innings (positive number): ", valid=None)
+            while max_overs <= 0:
+                max_overs = safe_int("Overs must be positive. Enter again: ", valid=None)
+        else:
+            max_overs = None
+            print("Unlimited overs format selected.")
+        
+        print("Does this format have a maximum overs per bowler limit? (y/n)")
+        has_bowler_limit = input("> ").strip().lower() == 'y'
+        
+        if has_bowler_limit:
+            max_bowler_overs = safe_int("Enter maximum overs per bowler (positive number): ", valid=None)
+            while max_bowler_overs <= 0:
+                max_bowler_overs = safe_int("Overs must be positive. Enter again: ", valid=None)
+        else:
+            max_bowler_overs = None
+            print("No bowler overs limit.")
+        
+        custom_format = {
+            'name': 'Custom',
+            'max_overs': max_overs,
+            'max_bowler_overs': max_bowler_overs,
+            'balls_per_over': 6
+        }
+        
+        print(f"\nCustom Format Summary:")
+        print(f"  - Overs per innings: {custom_format['max_overs'] if custom_format['max_overs'] else 'Unlimited'}")
+        print(f"  - Max overs per bowler: {custom_format['max_bowler_overs'] if custom_format['max_bowler_overs'] else 'Unlimited'}")
+        print(f"  - Balls per over: {custom_format['balls_per_over']}")
+        
+        return custom_format
 
 def handle_no_ball_outcome(outcome, batters, bowler, team, over_num, ball_num):
     runs = 1

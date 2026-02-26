@@ -4,9 +4,68 @@ from .input_handlers import select_format
 from .scorecard_export import export_all
 
 ### just to not forget this info
-# cd /workspaces/python-portfolio/python-courses/cisco-python-essentials-2/scorecard-generator
 # python -m scorecard_generator.main
 ###
+
+
+def print_innings_summary(innings1, innings2):
+    """Print a quick summary of both innings with top performers."""
+    print("\n" + "="*70)
+    print("MATCH SUMMARY")
+    print("="*70)
+    
+    # First Innings Summary
+    score1, wickets1, overs1, _ = innings1.get_score()
+    print(f"\n1st Innings: {innings1.batting_team.name}")
+    print(f"Score: {score1}/{wickets1}")
+    print(f"\nTop Batters:")
+    
+    # Get all batters who batted and sort by runs
+    batters1 = [p for p in innings1.batting_team.players.values() if p.batted]
+    batters1.sort(key=lambda x: x.batting['runs'], reverse=True)
+    
+    for i, batter in enumerate(batters1[:4]):  # Show max 4
+        runs = batter.batting['runs']
+        balls = batter.batting['balls']
+        print(f"  {batter.name}: {runs}({balls})")
+    
+    print(f"\nTop Bowlers:")
+    # Get all bowlers who bowled and sort by wickets (desc), then runs (asc)
+    bowlers1 = [p for p in innings1.bowling_team.players.values() if p.bowled]
+    bowlers1.sort(key=lambda x: (-x.bowling['wickets'], x.bowling['runs']))
+    
+    for i, bowler in enumerate(bowlers1[:4]):  # Show max 4
+        wickets = bowler.bowling['wickets']
+        runs = bowler.bowling['runs']
+        print(f"  {bowler.name}: {wickets}-{runs}")
+    
+    # Second Innings Summary
+    score2, wickets2, overs2, _ = innings2.get_score()
+    print(f"\n{'-'*70}")
+    print(f"\n2nd Innings: {innings2.batting_team.name}")
+    print(f"Score: {score2}/{wickets2}")
+    print(f"\nTop Batters:")
+    
+    # Get all batters who batted and sort by runs
+    batters2 = [p for p in innings2.batting_team.players.values() if p.batted]
+    batters2.sort(key=lambda x: x.batting['runs'], reverse=True)
+    
+    for i, batter in enumerate(batters2[:4]):  # Show max 4
+        runs = batter.batting['runs']
+        balls = batter.batting['balls']
+        print(f"  {batter.name}: {runs}({balls})")
+    
+    print(f"\nTop Bowlers:")
+    # Get all bowlers who bowled and sort by wickets (desc), then runs (asc)
+    bowlers2 = [p for p in innings2.bowling_team.players.values() if p.bowled]
+    bowlers2.sort(key=lambda x: (-x.bowling['wickets'], x.bowling['runs']))
+    
+    for i, bowler in enumerate(bowlers2[:4]):  # Show max 4
+        wickets = bowler.bowling['wickets']
+        runs = bowler.bowling['runs']
+        print(f"  {bowler.name}: {wickets}-{runs}")
+    
+    print("="*70)
 
 
 def main():
@@ -89,20 +148,28 @@ def main():
         # Export to CSV files
         export_all(team1, team2, innings1, innings2, match_result)
         
+        # Print match summary
+        print_innings_summary(innings1, innings2)
+        
         # Post-match menu
-        print("\nGame Finished!")
+        print("\nScoring Finished!")
         while True:
-            print("1 - New Game")
-            print("2 - Quit")
+            print("1 - Match Stats")
+            print("2 - New Game")
+            print("3 - Quit")
             choice = input("Enter choice: ").strip()
             if choice == "1":
+                print("\nMatch Stats feature coming soon...")
+                return
+                # TODO: Implement match stats functionality
+            elif choice == "2":
                 print("\n" + "="*70)
                 break
-            elif choice == "2":
-                print("Thanks for playing!")
+            elif choice == "3":
+                print("Thanks for scoring!")
                 return
             else:
-                print("Invalid choice. Please enter 1 or 2.")
+                print("Invalid choice. Please enter 1, 2, or 3.")
 
 if __name__ == "__main__":
     main()

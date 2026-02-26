@@ -34,8 +34,12 @@ def print_batting_scorecard(innings):
     extras_str = ', '.join(extras_parts)
     print("{:<20}{:<25}{:>5}".format("Extras", f"({extras_str})" if extras_str else '', extras_total))
     runs, wickets, overs, rr = innings.get_score()
-    # Calculate balls for overs: only legal deliveries
-    balls = sum(1 for be in innings.balls if be.event in ['normal', 'bye', 'leg bye', 'wicket'])
+    # Calculate balls for overs: count only legal deliveries (exclude wides and no balls)
+    balls = sum(
+        1
+        for be in innings.balls
+        if not (be.event.startswith('wide') or be.event.startswith('no ball'))
+    )
     full_overs = balls // 6
     rem_balls = balls % 6
     overs_str = f"{full_overs}.{rem_balls} Ov" if rem_balls else f"{full_overs} Ov"

@@ -147,6 +147,7 @@ def process_ball_event(
         innings.extras['no balls'] += 1
         bowler.bowling['noballs'] += 1
         bowler.bowling['runs'] += 1
+        batter.batting['balls'] += 1
 
     elif event_type == "no ball_runs":
         penalty = 1
@@ -155,6 +156,7 @@ def process_ball_event(
         bowler.bowling['noballs'] += penalty
         bowler.bowling['runs'] += runs
         batter.batting['runs'] += bat_runs
+        batter.batting['balls'] += 1
         if bat_runs == 4:
             batter.batting['4s'] += 1
             bowler.bowling['4s'] += 1
@@ -172,6 +174,19 @@ def process_ball_event(
         innings.extras['byes'] += bye_runs
         bowler.bowling['noballs'] += penalty
         bowler.bowling['runs'] += penalty
+        batter.batting['balls'] += 1
+        over_runs += runs
+        if swapped:
+            current_batters.reverse()
+
+    elif event_type == "no ball_leg_bye":
+        penalty = 1
+        leg_bye_runs = runs - penalty
+        innings.extras['no balls'] += penalty
+        innings.extras['leg byes'] += leg_bye_runs
+        bowler.bowling['noballs'] += penalty
+        bowler.bowling['runs'] += penalty
+        batter.batting['balls'] += 1
         over_runs += runs
         if swapped:
             current_batters.reverse()

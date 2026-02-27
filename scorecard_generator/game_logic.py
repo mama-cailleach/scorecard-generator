@@ -52,12 +52,23 @@ def process_ball_event(
     
     # Determine current phase for stats tracking
     phase = get_current_phase(over, format_config)
+
+    def record_partnership_contribution(partnership, player, runs_to_add=0, ball_faced=False):
+        if not partnership or player is None:
+            return
+        if player == partnership.batter1:
+            partnership.batter1_runs += runs_to_add
+            if ball_faced:
+                partnership.batter1_balls += 1
+        elif player == partnership.batter2:
+            partnership.batter2_runs += runs_to_add
+            if ball_faced:
+                partnership.batter2_balls += 1
     
 
     def handle_wicket_fall(out_batter_idx=0, out_batter=None):
         nonlocal wickets, current_batters, over_ended_early, batters_yet
         runs_total, _, _, _ = innings.get_score()
-        print(f"Set dismissal for {out_batter.name}: {out_batter.batting['dismissal']}") # delete
         print(f"\nWICKET! Score: {runs_total}-{wickets+1} | {out_batter.name} {out_batter.batting['runs']}({out_batter.batting['balls']})")
         wickets += 1
         innings.fall_of_wickets.append((runs_total, out_batter.name, bowler.name, over + ball_number / 10))
@@ -106,6 +117,7 @@ def process_ball_event(
             current_batters[out_batter_idx] = batting_team.players[next_batter_num]
             # Start new partnership
             new_batter = batting_team.players[next_batter_num]
+            new_batter.batted = True
             survivor = current_batters[1 - out_batter_idx]
             runs_total, _, _, _ = innings.get_score()
             innings.current_partnership = Partnership(survivor, new_batter, wickets + 1, runs_total)
@@ -142,12 +154,7 @@ def process_ball_event(
         if innings.current_partnership:
             innings.current_partnership.runs += runs
             innings.current_partnership.balls += 1
-            if batter == current_batters[0]:
-                innings.current_partnership.batter1_runs += runs
-                innings.current_partnership.batter1_balls += 1
-            else:
-                innings.current_partnership.batter2_runs += runs
-                innings.current_partnership.batter2_balls += 1
+            record_partnership_contribution(innings.current_partnership, batter, runs_to_add=runs, ball_faced=True)
         
         if runs % 2 == 1:
             current_batters.reverse()
@@ -218,12 +225,7 @@ def process_ball_event(
         # Track partnership stats
         if innings.current_partnership:
             innings.current_partnership.runs += runs
-            if batter == current_batters[0]:
-                innings.current_partnership.batter1_runs += bat_runs
-                innings.current_partnership.batter1_balls += 1
-            else:
-                innings.current_partnership.batter2_runs += bat_runs
-                innings.current_partnership.batter2_balls += 1
+            record_partnership_contribution(innings.current_partnership, batter, runs_to_add=bat_runs, ball_faced=True)
         
         if bat_runs % 2 == 1:
             current_batters.reverse()
@@ -346,10 +348,7 @@ def process_ball_event(
         # Track partnership stats (balls only, runs already tracked)
         if innings.current_partnership:
             innings.current_partnership.balls += 1
-            if batter == current_batters[0]:
-                innings.current_partnership.batter1_balls += 1
-            else:
-                innings.current_partnership.batter2_balls += 1
+            record_partnership_contribution(innings.current_partnership, batter, runs_to_add=0, ball_faced=True)
         
         bowler_surname = bowler.name.split()[-1]
         dismissal_set = False
@@ -409,7 +408,10 @@ def play_innings(batting_team, bowling_team, format_config, target=None):
         print(f"{idx}: {num} {get_display_name(batting_team, num)}")
     openers = select_openers(batting_team)
     striker, non_striker = batting_team.players[openers[0]], batting_team.players[openers[1]]
+    striker.batted = True
+    non_striker.batted = True
     current_batters = [striker, non_striker]
+    innings.current_batters = current_batters
     
     # Initialize first partnership
     innings.current_partnership = Partnership(striker, non_striker, 1, 0)

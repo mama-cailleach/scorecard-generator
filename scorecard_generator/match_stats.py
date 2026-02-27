@@ -302,6 +302,9 @@ def format_scorecard_data(innings):
         Dict with batting and bowling scorecard data
     """
     team = innings.batting_team
+    current_batter_numbers = {
+        p.number for p in getattr(innings, 'current_batters', []) if p is not None
+    }
     
     # Batting data
     batters = []
@@ -311,7 +314,7 @@ def format_scorecard_data(innings):
         p = team.players[num]
         bat = p.batting
         
-        if bat['balls'] > 0 or bat['runs'] > 0 or bat['dismissal'] != 'not out' or p.batted:
+        if bat['balls'] > 0 or bat['runs'] > 0 or bat['dismissal'] != 'not out' or p.batted or num in current_batter_numbers:
             player_name = get_display_name(team, num)
             sr = (bat['runs'] / bat['balls'] * 100) if bat['balls'] > 0 else 0.0
             not_out = "*" if bat['dismissal'] == 'not out' else ""

@@ -2,6 +2,9 @@ from .input_handlers import get_display_name
 
 def print_batting_scorecard(innings):
     team = innings.batting_team
+    current_batter_numbers = {
+        p.number for p in getattr(innings, 'current_batters', []) if p is not None
+    }
     print(f"\nBatting: {team.name}")
     columns = ["Player Name", "Dismissal", "Runs", "Balls", "4s", "6s", "SR"]
     print("{:<20}{:<25}{:>5}{:>6}{:>4}{:>4}{:>7}".format(*columns))
@@ -10,7 +13,7 @@ def print_batting_scorecard(innings):
         p = team.players[num]
         bat = p.batting
         # Show batter if they have batted (faced balls/scored/got out) OR if they are currently batting (p.batted is True)
-        if bat['balls'] > 0 or bat['runs'] > 0 or bat['dismissal'] != 'not out' or p.batted:
+        if bat['balls'] > 0 or bat['runs'] > 0 or bat['dismissal'] != 'not out' or p.batted or num in current_batter_numbers:
             player_name = get_display_name(team, num)
             dismissal = bat['dismissal']
             print("{:<20}{:<25}{:>5}{:>6}{:>4}{:>4}{:>7.2f}".format(

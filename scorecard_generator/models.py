@@ -131,9 +131,13 @@ class Innings:
                 max_over = max(all_overs_bowled)
                 
                 # Count balls in the last (potentially incomplete) over
+                # Exclude all wide and no-ball variants (they don't count as legal deliveries)
                 balls_in_last_over = sum(
                     1 for be in self.balls 
-                    if be.over == max_over and be.event not in ['wide', 'no ball']
+                    if be.over == max_over and not (
+                        be.event.startswith('wide') or 
+                        be.event.startswith('no ball')
+                    )
                 )
                 
                 # Calculate overs: complete overs + fractional part from last over
@@ -144,7 +148,10 @@ class Innings:
         else:
             # Fallback: count from balls if no bowler_overs available
             # Count all deliveries except wides and no-balls (which don't count as legal)
-            balls = sum(1 for be in self.balls if be.event not in ['wide', 'no ball'])
+            balls = sum(1 for be in self.balls if not (
+                be.event.startswith('wide') or 
+                be.event.startswith('no ball')
+            ))
             overs = balls // BALLS_PER_OVER + (balls % BALLS_PER_OVER) / 10
         
         rr = total_runs / (overs * BALLS_PER_OVER / BALLS_PER_OVER) if overs > 0 else 0

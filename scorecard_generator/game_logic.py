@@ -108,7 +108,7 @@ def process_ball_event(
             new_batter = batting_team.players[next_batter_num]
             survivor = current_batters[1 - out_batter_idx]
             runs_total, _, _, _ = innings.get_score()
-            innings.current_partnership = Partnership(survivor, new_batter, wickets, runs_total)
+            innings.current_partnership = Partnership(survivor, new_batter, wickets + 1, runs_total)
         else:
             current_batters[0] = None
             current_batters[1] = None
@@ -275,6 +275,7 @@ def process_ball_event(
         batter.batting['balls'] += 1
         batter.batting['scoring_distribution'][0] += 1  # Count as dot ball for batter
         bowler.bowling['balls'] += 1
+        bowler.bowling['dots'] += 1  # Byes are dots for bowlers (no runs off bat)
         over_runs += runs
         
         # Track phase stats
@@ -297,6 +298,7 @@ def process_ball_event(
         batter.batting['balls'] += 1
         batter.batting['scoring_distribution'][0] += 1  # Count as dot ball for batter
         bowler.bowling['balls'] += 1
+        bowler.bowling['dots'] += 1  # Leg byes are dots for bowlers (no runs off bat)
         over_runs += runs
         
         # Track phase stats
@@ -335,6 +337,7 @@ def process_ball_event(
         batter.batting['scoring_distribution'][0] += 1  # Wicket counts as dot for scoring distribution
         bowler.bowling['balls'] += 1
         bowler.bowling['wickets'] += 1
+        bowler.bowling['dots'] += 1  # Wickets are dots for bowlers
         
         # Track phase stats
         if phase:
@@ -409,7 +412,7 @@ def play_innings(batting_team, bowling_team, format_config, target=None):
     current_batters = [striker, non_striker]
     
     # Initialize first partnership
-    innings.current_partnership = Partnership(striker, non_striker, 0, 0)
+    innings.current_partnership = Partnership(striker, non_striker, 1, 0)
     
     batters_yet = [num for num in batting_team.order if num not in batting_team.order[:2]]
     bowler_overs = {}

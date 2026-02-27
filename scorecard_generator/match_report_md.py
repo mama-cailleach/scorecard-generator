@@ -53,6 +53,95 @@ def generate_markdown_report(team1, team2, innings1, innings2, match_result, for
     md.append(f"| {team2_name} | {stats2['total_runs']}/{stats2['wickets']} | {stats2['overs']:.1f} | {stats2['run_rate']:.2f} |")
     md.append("")
     
+    # Full Scorecards Section
+    from .match_stats import format_scorecard_data
+    
+    # First Innings Scorecard
+    scorecard1 = format_scorecard_data(innings1)
+    md.append("## 1st Innings Scorecard")
+    md.append("")
+    md.append(f"### {scorecard1['team_name']} Batting")
+    md.append("")
+    md.append("| Player Name | Dismissal | Runs | Balls | 4s | 6s | SR |")
+    md.append("|-------------|-----------|------|-------|----|----|-----|")
+    
+    for batter in scorecard1['batters']:
+        md.append(f"| {batter['name']} | {batter['dismissal']} | **{batter['runs']}{batter['not_out']}** | {batter['balls']} | {batter['fours']} | {batter['sixes']} | {batter['sr']:.2f} |")
+    
+    # Extras
+    extras_display = f"({scorecard1['extras_detail']})" if scorecard1['extras_detail'] else ""
+    md.append(f"| **Extras** | {extras_display} | **{scorecard1['extras']}** | | | | |")
+    md.append("")
+    md.append(f"**Total: {scorecard1['overs']} Ov (RR: {scorecard1['run_rate']:.2f}) {scorecard1['total_runs']}/{scorecard1['total_wickets']}**")
+    md.append("")
+    
+    if scorecard1['did_not_bat']:
+        md.append(f"*Did not bat: {', '.join(scorecard1['did_not_bat'])}*")
+        md.append("")
+    
+    if scorecard1['fall_of_wickets']:
+        fow_list = []
+        for fw in scorecard1['fall_of_wickets']:
+            fow_list.append(f"{fw['number']}-{fw['runs']} ({fw['batsman']}, {fw['over']:.1f} ov)")
+        md.append(f"**Fall of wickets:** {', '.join(fow_list)}")
+        md.append("")
+    
+    # Bowling
+    md.append(f"### Bowling: {scorecard1['bowling_team']}")
+    md.append("")
+    md.append("| Bowler | Overs | M | Runs | Wkts | Econ | Dots | 4s | 6s | Wd | NB |")
+    md.append("|--------|-------|---|------|------|------|------|----|----|----|----|")
+    
+    for bowler in scorecard1['bowlers']:
+        md.append(f"| {bowler['name']} | {bowler['overs']} | {bowler['maidens']} | {bowler['runs']} | **{bowler['wickets']}** | {bowler['economy']:.2f} | {bowler['dots']} | {bowler['fours']} | {bowler['sixes']} | {bowler['wides']} | {bowler['noballs']} |")
+    
+    md.append("")
+    md.append("---")
+    md.append("")
+    
+    # Second Innings Scorecard
+    scorecard2 = format_scorecard_data(innings2)
+    md.append("## 2nd Innings Scorecard")
+    md.append("")
+    md.append(f"### {scorecard2['team_name']} Batting")
+    md.append("")
+    md.append("| Player Name | Dismissal | Runs | Balls | 4s | 6s | SR |")
+    md.append("|-------------|-----------|------|-------|----|----|-----|")
+    
+    for batter in scorecard2['batters']:
+        md.append(f"| {batter['name']} | {batter['dismissal']} | **{batter['runs']}{batter['not_out']}** | {batter['balls']} | {batter['fours']} | {batter['sixes']} | {batter['sr']:.2f} |")
+    
+    # Extras
+    extras_display = f"({scorecard2['extras_detail']})" if scorecard2['extras_detail'] else ""
+    md.append(f"| **Extras** | {extras_display} | **{scorecard2['extras']}** | | | | |")
+    md.append("")
+    md.append(f"**Total: {scorecard2['overs']} Ov (RR: {scorecard2['run_rate']:.2f}) {scorecard2['total_runs']}/{scorecard2['total_wickets']}**")
+    md.append("")
+    
+    if scorecard2['did_not_bat']:
+        md.append(f"*Did not bat: {', '.join(scorecard2['did_not_bat'])}*")
+        md.append("")
+    
+    if scorecard2['fall_of_wickets']:
+        fow_list = []
+        for fw in scorecard2['fall_of_wickets']:
+            fow_list.append(f"{fw['number']}-{fw['runs']} ({fw['batsman']}, {fw['over']:.1f} ov)")
+        md.append(f"**Fall of wickets:** {', '.join(fow_list)}")
+        md.append("")
+    
+    # Bowling
+    md.append(f"### Bowling: {scorecard2['bowling_team']}")
+    md.append("")
+    md.append("| Bowler | Overs | M | Runs | Wkts | Econ | Dots | 4s | 6s | Wd | NB |")
+    md.append("|--------|-------|---|------|------|------|------|----|----|----|----|")
+    
+    for bowler in scorecard2['bowlers']:
+        md.append(f"| {bowler['name']} | {bowler['overs']} | {bowler['maidens']} | {bowler['runs']} | **{bowler['wickets']}** | {bowler['economy']:.2f} | {bowler['dots']} | {bowler['fours']} | {bowler['sixes']} | {bowler['wides']} | {bowler['noballs']} |")
+    
+    md.append("")
+    md.append("---")
+    md.append("")
+    
     # Scoring Breakdown (if T20 or ODI)
     if format_config['name'] in ['T20', 'One Day']:
         phase1 = calculate_phase_breakdown(innings1, format_config)

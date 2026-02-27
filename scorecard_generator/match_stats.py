@@ -5,6 +5,7 @@ including phase breakdowns, partnerships, top performers, and chart data.
 """
 
 from collections import defaultdict
+from .input_handlers import get_display_name
 
 
 def calculate_phase_breakdown(innings, format_config):
@@ -289,3 +290,117 @@ def generate_runrate_data(innings):
         run_rates.append(run_rate)
     
     return run_rates
+
+
+def format_scorecard_data(innings):
+    """Format complete scorecard data for an innings.
+    
+    Args:
+        innings: Innings object
+    
+    Returns:
+        Dict with batting and bowling scorecard data
+    """
+    team = innings.batting_team
+    
+    # Batting data
+    batters = []
+    did_not_bat = []
+    
+    for num in team.order:
+        p = team.players[num]
+        bat = p.batting
+        
+        if bat['balls'] > 0 or bat['runs'] > 0 or bat['dismissal'] != 'not out' or p.batted:
+            player_name = get_display_name(team, num)
+            sr = (bat['runs'] / bat['balls'] * 100) if bat['balls'] > 0 else 0.0
+            not_out = "*" if bat['dismissal'] == 'not out' else ""
+            
+            batters.append({
+                'name': player_name,
+                'dismissal': bat['dismissal'],
+                'runs': bat['runs'],
+                'not_out': not_out,
+                'balls': bat['balls'],
+                'fours': bat.get('4s', 0),
+                'sixes': bat.get('6s', 0),
+                'sr': sr
+            })
+        else:
+            did_not_bat.append(get_display_name(team, num))
+    
+    # Extras
+    extras_total = sum(innings.extras.values())
+    extras_parts = []
+    if innings.extras['byes']:
+        extras_parts.append(f"b {innings.extras['byes']}")
+    if innings.extras['leg byes']:
+        extras_parts.append(f"lb {innings.extras['leg byes']}")
+    if innings.extras['wides']:
+        extras_parts.append(f"w {innings.extras['wides']}")
+    if innings.extras['no balls']:
+        extras_parts.append(f"nb {innings.extras['no balls']}")
+    extras_str = ', '.join(extras_parts)
+    
+    # Total
+    runs, wickets, overs, rr = innings.get_score()
+    balls = sum(
+        1 for be in innings.balls
+        if not (be.event.startswith('wide') or be.event.startswith('no ball'))
+    )
+    full_overs = balls // 6
+    rem_balls = balls % 6
+    overs_str = f"{full_overs}.{rem_balls}" if rem_balls else str(full_overs)
+    
+    # Fall of wickets
+    fall_of_wickets = []
+    for i, fw in enumerate(innings.fall_of_wickets, 1):
+        fw_runs, batsman, bowler, over = fw
+        fall_of_wickets.append({
+            'number': i,
+            'runs': fw_runs,
+            'batsman': batsman,
+            'over': over
+        })
+    
+    # Bowling data
+    bowlers = []
+    for num, p in innings.bowling_team.players.items():
+        if p.bowling['balls'] == 0:
+            continue
+        
+        balls = p.bowling['balls']
+        full_overs = balls // 6
+        rem_balls = balls % 6
+        overs_bowled = f"{full_overs}.{rem_balls}" if rem_balls else f"{full_overs}.0"
+        
+        econ = (p.bowling['runs'] / (balls/6)) if balls else 0
+        
+        bowlers.append({
+            'name': p.name,
+            'overs': overs_bowled,
+            'maidens': p.bowling['maidens'],
+            'runs': p.bowling['runs'],
+            'wickets': p.bowling['wickets'],
+            'economy': econ,
+            'dots': p.bowling['dots'],
+            'fours': p.bowling.get('4s', 0),
+            'sixes': p.bowling.get('6s', 0),
+            'wides': p.bowling['wides'],
+            'noballs': p.bowling['noballs']
+        })
+    
+    return {
+        'team_name': team.name,
+        'batters': batters,
+        'extras': extras_total,
+        'extras_detail': extras_str,
+        'did_not_bat': did_not_bat,
+        'total_runs': runs,
+        'total_wickets': wickets,
+        'overs': overs_str,
+        'run_rate': rr,
+        'fall_of_wickets': fall_of_wickets,
+        'bowlers': bowlers,
+        'bowling_team': innings.bowling_team.name
+    }

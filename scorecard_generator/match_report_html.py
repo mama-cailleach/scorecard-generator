@@ -318,6 +318,137 @@ def generate_html_report(team1, team2, innings1, innings2, match_result, format_
     html.append('        </div>')
     html.append('    </div>')
     
+    # Full Scorecards Section
+    from .match_stats import format_scorecard_data
+    
+    # First Innings Scorecard
+    scorecard1 = format_scorecard_data(innings1)
+    html.append('    <div class="section">')
+    html.append(f'        <h2>1st Innings: {scorecard1["team_name"]} Batting</h2>')
+    
+    # Batting table
+    html.append('        <table>')
+    html.append('            <tr><th>Player Name</th><th>Dismissal</th><th>Runs</th><th>Balls</th><th>4s</th><th>6s</th><th>SR</th></tr>')
+    for batter in scorecard1['batters']:
+        html.append(f'            <tr>')
+        html.append(f'                <td>{batter["name"]}</td>')
+        html.append(f'                <td>{batter["dismissal"]}</td>')
+        html.append(f'                <td><strong>{batter["runs"]}{batter["not_out"]}</strong></td>')
+        html.append(f'                <td>{batter["balls"]}</td>')
+        html.append(f'                <td>{batter["fours"]}</td>')
+        html.append(f'                <td>{batter["sixes"]}</td>')
+        html.append(f'                <td>{batter["sr"]:.2f}</td>')
+        html.append(f'            </tr>')
+    
+    # Extras row
+    extras_display = f'({scorecard1["extras_detail"]})' if scorecard1['extras_detail'] else ''
+    html.append(f'            <tr style="font-weight: bold; background-color: #f8f9fa;">')
+    html.append(f'                <td>Extras</td>')
+    html.append(f'                <td>{extras_display}</td>')
+    html.append(f'                <td><strong>{scorecard1["extras"]}</strong></td>')
+    html.append(f'                <td colspan="4"></td>')
+    html.append(f'            </tr>')
+    html.append('        </table>')
+    
+    # Total line
+    html.append(f'        <p style="font-size: 1.1em; margin: 10px 0;"><strong>Total: {scorecard1["overs"]} Ov (RR: {scorecard1["run_rate"]:.2f}) {scorecard1["total_runs"]}/{scorecard1["total_wickets"]}</strong></p>')
+    
+    # Did not bat
+    if scorecard1['did_not_bat']:
+        html.append(f'        <p><em>Did not bat: {", ".join(scorecard1["did_not_bat"])}</em></p>')
+    
+    # Fall of wickets
+    if scorecard1['fall_of_wickets']:
+        fow_list = []
+        for fw in scorecard1['fall_of_wickets']:
+            fow_list.append(f'{fw["number"]}-{fw["runs"]} ({fw["batsman"]}, {fw["over"]:.1f} ov)')
+        html.append(f'        <p><strong>Fall of wickets:</strong> {", ".join(fow_list)}</p>')
+    
+    # Bowling table
+    html.append(f'        <h3>Bowling: {scorecard1["bowling_team"]}</h3>')
+    html.append('        <table>')
+    html.append('            <tr><th>Bowler</th><th>Overs</th><th>M</th><th>Runs</th><th>Wkts</th><th>Econ</th><th>Dots</th><th>4s</th><th>6s</th><th>Wd</th><th>NB</th></tr>')
+    for bowler in scorecard1['bowlers']:
+        html.append(f'            <tr>')
+        html.append(f'                <td>{bowler["name"]}</td>')
+        html.append(f'                <td>{bowler["overs"]}</td>')
+        html.append(f'                <td>{bowler["maidens"]}</td>')
+        html.append(f'                <td>{bowler["runs"]}</td>')
+        html.append(f'                <td><strong>{bowler["wickets"]}</strong></td>')
+        html.append(f'                <td>{bowler["economy"]:.2f}</td>')
+        html.append(f'                <td>{bowler["dots"]}</td>')
+        html.append(f'                <td>{bowler["fours"]}</td>')
+        html.append(f'                <td>{bowler["sixes"]}</td>')
+        html.append(f'                <td>{bowler["wides"]}</td>')
+        html.append(f'                <td>{bowler["noballs"]}</td>')
+        html.append(f'            </tr>')
+    html.append('        </table>')
+    html.append('    </div>')
+    
+    # Second Innings Scorecard
+    scorecard2 = format_scorecard_data(innings2)
+    html.append('    <div class="section">')
+    html.append(f'        <h2>2nd Innings: {scorecard2["team_name"]} Batting</h2>')
+    
+    # Batting table
+    html.append('        <table>')
+    html.append('            <tr><th>Player Name</th><th>Dismissal</th><th>Runs</th><th>Balls</th><th>4s</th><th>6s</th><th>SR</th></tr>')
+    for batter in scorecard2['batters']:
+        html.append(f'            <tr>')
+        html.append(f'                <td>{batter["name"]}</td>')
+        html.append(f'                <td>{batter["dismissal"]}</td>')
+        html.append(f'                <td><strong>{batter["runs"]}{batter["not_out"]}</strong></td>')
+        html.append(f'                <td>{batter["balls"]}</td>')
+        html.append(f'                <td>{batter["fours"]}</td>')
+        html.append(f'                <td>{batter["sixes"]}</td>')
+        html.append(f'                <td>{batter["sr"]:.2f}</td>')
+        html.append(f'            </tr>')
+    
+    # Extras row
+    extras_display = f'({scorecard2["extras_detail"]})' if scorecard2['extras_detail'] else ''
+    html.append(f'            <tr style="font-weight: bold; background-color: #f8f9fa;">')
+    html.append(f'                <td>Extras</td>')
+    html.append(f'                <td>{extras_display}</td>')
+    html.append(f'                <td><strong>{scorecard2["extras"]}</strong></td>')
+    html.append(f'                <td colspan="4"></td>')
+    html.append(f'            </tr>')
+    html.append('        </table>')
+    
+    # Total line
+    html.append(f'        <p style="font-size: 1.1em; margin: 10px 0;"><strong>Total: {scorecard2["overs"]} Ov (RR: {scorecard2["run_rate"]:.2f}) {scorecard2["total_runs"]}/{scorecard2["total_wickets"]}</strong></p>')
+    
+    # Did not bat
+    if scorecard2['did_not_bat']:
+        html.append(f'        <p><em>Did not bat: {", ".join(scorecard2["did_not_bat"])}</em></p>')
+    
+    # Fall of wickets
+    if scorecard2['fall_of_wickets']:
+        fow_list = []
+        for fw in scorecard2['fall_of_wickets']:
+            fow_list.append(f'{fw["number"]}-{fw["runs"]} ({fw["batsman"]}, {fw["over"]:.1f} ov)')
+        html.append(f'        <p><strong>Fall of wickets:</strong> {", ".join(fow_list)}</p>')
+    
+    # Bowling table
+    html.append(f'        <h3>Bowling: {scorecard2["bowling_team"]}</h3>')
+    html.append('        <table>')
+    html.append('            <tr><th>Bowler</th><th>Overs</th><th>M</th><th>Runs</th><th>Wkts</th><th>Econ</th><th>Dots</th><th>4s</th><th>6s</th><th>Wd</th><th>NB</th></tr>')
+    for bowler in scorecard2['bowlers']:
+        html.append(f'            <tr>')
+        html.append(f'                <td>{bowler["name"]}</td>')
+        html.append(f'                <td>{bowler["overs"]}</td>')
+        html.append(f'                <td>{bowler["maidens"]}</td>')
+        html.append(f'                <td>{bowler["runs"]}</td>')
+        html.append(f'                <td><strong>{bowler["wickets"]}</strong></td>')
+        html.append(f'                <td>{bowler["economy"]:.2f}</td>')
+        html.append(f'                <td>{bowler["dots"]}</td>')
+        html.append(f'                <td>{bowler["fours"]}</td>')
+        html.append(f'                <td>{bowler["sixes"]}</td>')
+        html.append(f'                <td>{bowler["wides"]}</td>')
+        html.append(f'                <td>{bowler["noballs"]}</td>')
+        html.append(f'            </tr>')
+    html.append('        </table>')
+    html.append('    </div>')
+    
     # Scoring Breakdown (if T20 or ODI)
     if format_config['name'] in ['T20', 'One Day']:
         phase1 = calculate_phase_breakdown(innings1, format_config)

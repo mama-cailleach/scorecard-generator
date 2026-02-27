@@ -1,4 +1,4 @@
-from .models import BallEvent, Innings, Player, Team
+from .models import BallEvent, Innings, Player, Team, Partnership, get_current_phase
 from .scorecard import print_batting_scorecard, print_bowling_scorecard
 from .input_handlers import input_ball, select_openers, select_bowler, get_display_name
 
@@ -46,9 +46,12 @@ def handle_no_ball_outcome(outcome, batters, bowler, team, over_num, ball_num):
 def process_ball_event(
     event_type, runs, fielders, swapped, innings, bowler, batter,
     current_batters, wickets, over, ball_num, batting_team, over_runs,
-    legal_balls, ball_number, batters_yet
+    legal_balls, ball_number, batters_yet, format_config
 ):
     over_ended_early = False
+    
+    # Determine current phase for stats tracking
+    phase = get_current_phase(over, format_config)
     
 
     def handle_wicket_fall(out_batter_idx=0, out_batter=None):
@@ -58,6 +61,16 @@ def process_ball_event(
         print(f"\nWICKET! Score: {runs_total}-{wickets+1} | {out_batter.name} {out_batter.batting['runs']}({out_batter.batting['balls']})")
         wickets += 1
         innings.fall_of_wickets.append((runs_total, out_batter.name, bowler.name, over + ball_number / 10))
+        
+        # Track wicket in phase stats
+        if phase:
+            innings.phase_stats[phase]['wickets'] += 1
+        
+        # Close current partnership
+        if innings.current_partnership:
+            innings.current_partnership.end_score = runs_total
+            innings.partnerships.append(innings.current_partnership)
+            innings.current_partnership = None
         
         if wickets == 10:
             current_batters[0] = None
@@ -91,6 +104,11 @@ def process_ball_event(
                 except:
                     print("you can't do that try again.")
             current_batters[out_batter_idx] = batting_team.players[next_batter_num]
+            # Start new partnership
+            new_batter = batting_team.players[next_batter_num]
+            survivor = current_batters[1 - out_batter_idx]
+            runs_total, _, _, _ = innings.get_score()
+            innings.current_partnership = Partnership(survivor, new_batter, wickets, runs_total)
         else:
             current_batters[0] = None
             current_batters[1] = None
@@ -102,6 +120,7 @@ def process_ball_event(
     if event_type == "normal":
         batter.batting['runs'] += runs
         batter.batting['balls'] += 1
+        batter.batting['scoring_distribution'][runs] += 1  # Track scoring distribution
         if runs == 4:
             batter.batting['4s'] += 1
             bowler.bowling['4s'] += 1
@@ -113,6 +132,23 @@ def process_ball_event(
         bowler.bowling['balls'] += 1
         bowler.bowling['runs'] += runs
         over_runs += runs
+        
+        # Track phase stats
+        if phase:
+            innings.phase_stats[phase]['runs'] += runs
+            innings.phase_stats[phase]['balls'] += 1
+        
+        # Track partnership stats
+        if innings.current_partnership:
+            innings.current_partnership.runs += runs
+            innings.current_partnership.balls += 1
+            if batter == current_batters[0]:
+                innings.current_partnership.batter1_runs += runs
+                innings.current_partnership.batter1_balls += 1
+            else:
+                innings.current_partnership.batter2_runs += runs
+                innings.current_partnership.batter2_balls += 1
+        
         if runs % 2 == 1:
             current_batters.reverse()
         legal_balls += 1
@@ -139,6 +175,15 @@ def process_ball_event(
             bowler.bowling['wides'] += 1
             bowler.bowling['runs'] += 1
         over_runs += runs
+        
+        # Track phase stats for wides
+        if phase:
+            innings.phase_stats[phase]['runs'] += runs
+        
+        # Track partnership stats for wides
+        if innings.current_partnership:
+            innings.current_partnership.runs += runs
+        
         if swapped:
             current_batters.reverse()
 
@@ -157,6 +202,7 @@ def process_ball_event(
         bowler.bowling['runs'] += runs
         batter.batting['runs'] += bat_runs
         batter.batting['balls'] += 1
+        batter.batting['scoring_distribution'][bat_runs] += 1  # Track scoring
         if bat_runs == 4:
             batter.batting['4s'] += 1
             bowler.bowling['4s'] += 1
@@ -164,6 +210,21 @@ def process_ball_event(
             batter.batting['6s'] += 1
             bowler.bowling['6s'] += 1
         over_runs += runs
+        
+        # Track phase stats
+        if phase:
+            innings.phase_stats[phase]['runs'] += runs
+        
+        # Track partnership stats
+        if innings.current_partnership:
+            innings.current_partnership.runs += runs
+            if batter == current_batters[0]:
+                innings.current_partnership.batter1_runs += bat_runs
+                innings.current_partnership.batter1_balls += 1
+            else:
+                innings.current_partnership.batter2_runs += bat_runs
+                innings.current_partnership.batter2_balls += 1
+        
         if bat_runs % 2 == 1:
             current_batters.reverse()
 
@@ -176,6 +237,15 @@ def process_ball_event(
         bowler.bowling['runs'] += penalty
         batter.batting['balls'] += 1
         over_runs += runs
+        
+        # Track phase stats
+        if phase:
+            innings.phase_stats[phase]['runs'] += runs
+        
+        # Track partnership stats
+        if innings.current_partnership:
+            innings.current_partnership.runs += runs
+        
         if swapped:
             current_batters.reverse()
 
@@ -188,14 +258,35 @@ def process_ball_event(
         bowler.bowling['runs'] += penalty
         batter.batting['balls'] += 1
         over_runs += runs
+        
+        # Track phase stats
+        if phase:
+            innings.phase_stats[phase]['runs'] += runs
+        
+        # Track partnership stats
+        if innings.current_partnership:
+            innings.current_partnership.runs += runs
+        
         if swapped:
             current_batters.reverse()
 
     elif event_type == "bye":
         innings.extras['byes'] += runs
         batter.batting['balls'] += 1
+        batter.batting['scoring_distribution'][0] += 1  # Count as dot ball for batter
         bowler.bowling['balls'] += 1
         over_runs += runs
+        
+        # Track phase stats
+        if phase:
+            innings.phase_stats[phase]['runs'] += runs
+            innings.phase_stats[phase]['balls'] += 1
+        
+        # Track partnership stats
+        if innings.current_partnership:
+            innings.current_partnership.runs += runs
+            innings.current_partnership.balls += 1
+        
         if swapped:
             current_batters.reverse()
         legal_balls += 1
@@ -204,8 +295,20 @@ def process_ball_event(
     elif event_type == "leg bye":
         innings.extras['leg byes'] += runs
         batter.batting['balls'] += 1
+        batter.batting['scoring_distribution'][0] += 1  # Count as dot ball for batter
         bowler.bowling['balls'] += 1
         over_runs += runs
+        
+        # Track phase stats
+        if phase:
+            innings.phase_stats[phase]['runs'] += runs
+            innings.phase_stats[phase]['balls'] += 1
+        
+        # Track partnership stats
+        if innings.current_partnership:
+            innings.current_partnership.runs += runs
+            innings.current_partnership.balls += 1
+        
         if swapped:
             current_batters.reverse()
         legal_balls += 1
@@ -229,8 +332,22 @@ def process_ball_event(
 
     elif event_type == "wicket":
         batter.batting['balls'] += 1
+        batter.batting['scoring_distribution'][0] += 1  # Wicket counts as dot for scoring distribution
         bowler.bowling['balls'] += 1
         bowler.bowling['wickets'] += 1
+        
+        # Track phase stats
+        if phase:
+            innings.phase_stats[phase]['balls'] += 1
+        
+        # Track partnership stats (balls only, runs already tracked)
+        if innings.current_partnership:
+            innings.current_partnership.balls += 1
+            if batter == current_batters[0]:
+                innings.current_partnership.batter1_balls += 1
+            else:
+                innings.current_partnership.batter2_balls += 1
+        
         bowler_surname = bowler.name.split()[-1]
         dismissal_set = False
 
@@ -290,6 +407,10 @@ def play_innings(batting_team, bowling_team, format_config, target=None):
     openers = select_openers(batting_team)
     striker, non_striker = batting_team.players[openers[0]], batting_team.players[openers[1]]
     current_batters = [striker, non_striker]
+    
+    # Initialize first partnership
+    innings.current_partnership = Partnership(striker, non_striker, 0, 0)
+    
     batters_yet = [num for num in batting_team.order if num not in batting_team.order[:2]]
     bowler_overs = {}
     wickets = 0
@@ -327,7 +448,7 @@ def play_innings(batting_team, bowling_team, format_config, target=None):
             wickets, over_runs, legal_balls, ball_num, current_batters, batters_yet, over_ended_early = process_ball_event(
                 event_type, runs, fielders, swapped, innings, bowler, batter,
                 current_batters, wickets, over, ball_num, batting_team, over_runs,
-                legal_balls, ball_num, batters_yet
+                legal_balls, ball_num, batters_yet, format_config
             )
             score, _, _, _ = innings.get_score()
             if target is not None and score >= target:
@@ -341,6 +462,12 @@ def play_innings(batting_team, bowling_team, format_config, target=None):
             break
         else:
             print("OVER FINISHED.")
+        
+        # Record over totals for charts
+        innings.over_totals.append(over_runs)
+        total_score, _, _, _ = innings.get_score()
+        innings.cumulative_runs.append(total_score)
+        
         bowler_overs[bowler_num].append(over)
         if over_runs == 0:
             bowler.bowling['maidens'] += 1
@@ -348,6 +475,13 @@ def play_innings(batting_team, bowling_team, format_config, target=None):
         over += 1
         if over > 0 and current_batters[0] and current_batters[1]:
             current_batters.reverse()
+    
+    # Close final partnership if still active
+    if innings.current_partnership:
+        total_score, _, _, _ = innings.get_score()
+        innings.current_partnership.end_score = total_score
+        innings.partnerships.append(innings.current_partnership)
+    
     print_batting_scorecard(innings)
     print_bowling_scorecard(innings)
     return innings

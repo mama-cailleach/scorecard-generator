@@ -1,0 +1,149 @@
+
+=====================================================
+MATCH STATS
+=====================================================
+
+## reprint each innings scorecards batting and bowling, exaclty like they are at the end of the innings. one after the other
+
+-----------------------------------------------------
+
+## in the scoring breakdown, powerplay middle overs and final overs is something just for t20 or One day modes
+## t20: power play=1-6 ; middle = 7-16 ; final 17-20
+## One day power play=1-10 ; middle = 11-40 ; final 41-50
+
+Scoring Breakdown
+
+IND Women          |       AUS Women
+
+43/0           Power Play         60/1
+135/6         Middle Overs       192/4
+73/3          Final Overs          -
+2                Sixes             2
+23               Fours            32
+104        Runs In Boundaries     140
+52%             Dot balls         42%
+13            Runs In Extras       5
+
+----------------------------------------------------
+
+Best Performances - Batters
+
+## Here will be top 2 batters of the Game
+
+G Voll | AUS-W
+101 runs (82 balls) | SR 123.17
+
+0s - 31
+1s - 31
+2s - 6
+3s - 0
+4s - 13
+6s - 1
+
+P Litchfield | AUS-W
+80 runs (62 balls) | SR 117.65
+
+0s - 25
+1s - 20
+2s - 5
+3s - 0
+4s - 11
+6s - 1
+
+----------------------------------------------------
+
+Best Performances - Bowlers
+
+## Here will be top 2 bowlers of the Game. similar to bowling scorecard stats
+
+A Gardner | AUS-W
+Overs       M  Runs  Wkts   Econ  Dots  4s  6s     Wd      NB
+   10       1    39     2   3.90    34   0   0      0       0
+
+AM King | AUS-W
+Overs       M  Runs  Wkts   Econ  Dots  4s  6s     Wd      NB
+   10       1    41     2   4.10    34   0   0      0       0
+
+----------------------------------------------------
+	
+Partnerships
+
+India Women 
+
+S Mandhana  | 1st wicket | Pratika Rawal
+31 (37)     |  78 (99)   |   43 (62)
+
+JI Rodrigues| 2nd wicket | Pratika Rawal
+11 (15)     |  20 (30)   |    8 (15)
+
+H Kaur      | 3rd wicket | Pratika Rawal
+1 (1)       |   2 (5)    |   1 (4)
+
+H Kaur      | 4th wicket | DB Sharma
+1 (5)       |  3 (11)    |  1 (6)
+
+H Kaur      | 5th wicket | AB Kaur
+11 (18)     |  27 (36)   |  13 (18)
+
+H Kaur      | 6th wicket | RM Ghosh
+8 (15)      |  32 (34)   |  22 (19)
+
+H Kaur      | 7th wicket | KS Gautam
+28 (26)     |  55 (60)   |  25 (34)
+
+H Kaur      | 8th wicket | K Gaud
+5 (5)       |  24 (19)   | 19 (14)
+
+N Shree Charani | 9th wicket | K Gaud
+0 (0)           |  0 (1)     |0 (1)
+
+Vaishnavi Sharma | 10th wicket | N Shree Charani
+10 (5)           |   10* (5)   |  0 (0)
+
+------------------------------------------------
+
+Partnerships
+
+Australia Women 
+
+AJ Healy   | 1st wicket | P Litchfield
+6 (10)     |  21 (25)   |   14 (15)
+
+P Litchfield | 2nd wicket | G Voll
+66 (47)      |  119 (94)  |  52 (47)
+
+BL Mooney   | 3rd wicket | G Voll
+31 (32)     |   82 (67)  |  49 (35)
+
+BL Mooney   | 4th wicket | A Sutherland
+0 (2)       |  1 (2)     |  0 (0)
+
+A Gardner   | 5th wicket | A Sutherland
+15 (13)     |  25 (25)   |  10 (12)
+
+TM McGrath  | 6th wicket | A Gardner
+0 (3)       |  4* (4)    |  4 (1)
+
+------------------------------------------------
+
+##this section to be a bar chart horizontal x-axis overs, y-axis runs per over
+
+Manhattan
+
+
+------------------------------------------------
+
+## this section to be a line graph x-axis overs, y-axis run rate
+
+Run Rate Graph
+
+
+------------------------------------------------
+
+## this section to be a line graph x-axis overs, y-axis total runs
+
+Worm
+
+
+------------------------------------------------
+

@@ -17,7 +17,10 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from scorecard_generator.models import Player, Team, Innings, BallEvent
 from scorecard_generator.scorecard import print_batting_scorecard, print_bowling_scorecard
-from scorecard_generator.scorecard_export import export_all
+from scorecard_generator.scorecard_export import export_all, sanitize_filename
+from scorecard_generator.match_stats import generate_terminal_summary
+from scorecard_generator.match_report_html import generate_html_report
+from scorecard_generator.match_report_md import generate_markdown_report
 
 
 def get_csv_paths():
@@ -525,6 +528,80 @@ def main():
     export_cricsheet_data(team1, team2, innings1, innings2, match_result, info, innings_data)
     
     print("\n✓ Replay complete! Check scorecard_generator/exports/ for CSV files.")
+    
+    # Store match data for stats generation
+    match_data = {
+        'team1': team1,
+        'team2': team2,
+        'innings1': innings1,
+        'innings2': innings2,
+        'match_result': match_result,
+        'format_config': {'name': 'Cricsheet Replay', 'max_overs': None, 'max_bowler_overs': None}
+    }
+    
+    # Post-match menu
+    print("\nReplay Finished!")
+    while True:
+        print("1 - Match Stats")
+        print("2 - Quit")
+        choice = input("Enter choice: ").strip()
+        if choice == "1":
+            print("\n" + "="*70)
+            print("GENERATING MATCH STATISTICS REPORT")
+            print("="*70)
+            
+            summary = generate_terminal_summary(
+                match_data['innings1'],
+                match_data['innings2'],
+                match_data['match_result'],
+                match_data['format_config']
+            )
+            print(summary)
+            
+            # Generate filenames
+            team1_clean = sanitize_filename(match_data['team1'].name)
+            team2_clean = sanitize_filename(match_data['team2'].name)
+            base_filename = f"{team1_clean}v{team2_clean}"
+            
+            html_filename = f"scorecard_generator/exports/{base_filename}_report.html"
+            md_filename = f"scorecard_generator/exports/{base_filename}_report.md"
+            
+            # Generate HTML report
+            try:
+                generate_html_report(
+                    match_data['team1'],
+                    match_data['team2'],
+                    match_data['innings1'],
+                    match_data['innings2'],
+                    match_data['match_result'],
+                    match_data['format_config'],
+                    html_filename
+                )
+                print(f"  📊 HTML Report: {html_filename}")
+            except Exception as e:
+                print(f"  ⚠️  HTML report generation failed: {e}")
+            
+            # Generate Markdown report
+            try:
+                generate_markdown_report(
+                    match_data['team1'],
+                    match_data['team2'],
+                    match_data['innings1'],
+                    match_data['innings2'],
+                    match_data['match_result'],
+                    match_data['format_config'],
+                    md_filename
+                )
+                print(f"  📝 Markdown Report: {md_filename}")
+            except Exception as e:
+                print(f"  ⚠️  Markdown report generation failed: {e}")
+            
+            print("\n" + "="*70)
+        elif choice == "2":
+            print("Thanks for using Cricsheet Replay!")
+            return
+        else:
+            print("Invalid choice. Please enter 1 or 2.")
 
 
 if __name__ == "__main__":

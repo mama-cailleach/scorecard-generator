@@ -51,7 +51,7 @@ scorecard-generator/
 ├── teams/                        # Team and XI CSV files
 ├── test/                         # Test suite
 └── docs/                         # Documentation
-
+```
 
 ## Team CSV Format
 
